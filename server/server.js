@@ -1,4 +1,4 @@
-
+```js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -31,16 +31,15 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
 
-  // Netlify frontend
-  // Replace this with your actual Netlify URL
-  "https://YOUR-NETLIFY-SITE.netlify.app",
+  // Production frontend
+  process.env.CLIENT_URL,
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests without an origin
-      // Example: Postman, server-to-server requests
+      // Allow requests without Origin
+      // Example: Postman / server-to-server
       if (!origin) {
         return callback(null, true);
       }
@@ -158,8 +157,13 @@ const PORT =
 // START SERVER
 // =====================================================
 
-app.listen(PORT, () => {
-  console.log(
-    `NOVA server running on port ${PORT}`
-  );
-});
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+    console.log(
+      `NOVA server running on port ${PORT}`
+    );
+  }
+);
+```
