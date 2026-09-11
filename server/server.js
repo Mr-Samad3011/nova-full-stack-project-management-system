@@ -33,7 +33,7 @@ const allowedOrigins = [
   "https://novapms.netlify.app",
 
   // Production frontend
-  process.env.CLIENT_URL,
+ 
 ];
 
 app.use(
