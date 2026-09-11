@@ -14,7 +14,15 @@ const commentRoutes = require("./routes/commentRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 
+// =====================================================
+// ENVIRONMENT
+// =====================================================
+
 dotenv.config();
+
+// =====================================================
+// APP
+// =====================================================
 
 const app = express();
 
@@ -29,10 +37,6 @@ connectDB();
 // =====================================================
 
 const allowedOrigins = [
-  // Local development
-  "http://localhost:5173",
-
-  // Production frontend
   "https://novapms.netlify.app",
 ];
 
@@ -40,7 +44,7 @@ app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests without Origin
-      // Example: Postman / server-to-server requests
+      // Example: server-to-server requests / Postman
       if (!origin) {
         return callback(null, true);
       }
@@ -71,6 +75,8 @@ app.use(
       "Content-Type",
       "Authorization",
     ],
+
+    optionsSuccessStatus: 204,
   })
 );
 
@@ -182,6 +188,7 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error("Server Error:", err);
 
+  // CORS error
   if (err.message === "Not allowed by CORS") {
     return res.status(403).json({
       success: false,
@@ -189,6 +196,7 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // Other server errors
   return res.status(500).json({
     success: false,
     message: "Internal server error",
