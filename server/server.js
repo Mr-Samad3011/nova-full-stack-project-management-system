@@ -30,6 +30,7 @@ connectDB();
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://novapms.netlify.app",
 
   // Production frontend
   process.env.CLIENT_URL,
