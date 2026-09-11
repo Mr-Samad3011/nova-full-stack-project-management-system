@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable react-refresh/only-export-components */
 
 import {
@@ -26,8 +26,7 @@ export const AuthProvider = ({ children }) => {
   // =====================================================
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("nova_token");
+    const token = localStorage.getItem("nova_token");
 
     // No token = user is not logged in
     if (!token) {
@@ -38,23 +37,22 @@ export const AuthProvider = ({ children }) => {
 
     const getCurrentUser = async () => {
       try {
-        const response =
-          await api.get("/auth/me");
+        const response = await api.get("/auth/me");
 
         if (
-  response.data?.success &&
-  response.data?.user
-) {
-  const currentUser =
-    response.data.user;
+          response.data?.success &&
+          response.data?.user
+        ) {
+          const currentUser = response.data.user;
 
-  localStorage.setItem(
-    "user",
-    JSON.stringify(currentUser)
-  );
+          // Save user for RBAC and page refresh
+          localStorage.setItem(
+            "user",
+            JSON.stringify(currentUser)
+          );
 
-  setUser(currentUser);
-} else {
+          setUser(currentUser);
+        } else {
           throw new Error(
             "Invalid user response"
           );
@@ -66,9 +64,8 @@ export const AuthProvider = ({ children }) => {
         );
 
         // Token invalid / expired
-        localStorage.removeItem(
-          "nova_token"
-        );
+        localStorage.removeItem("nova_token");
+        localStorage.removeItem("user");
 
         setUser(null);
       } finally {
@@ -85,14 +82,12 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (formData) => {
     try {
-      const response =
-        await api.post(
-          "/auth/register",
-          formData
-        );
+      const response = await api.post(
+        "/auth/register",
+        formData
+      );
 
-      const { token, user } =
-        response.data;
+      const { token, user } = response.data;
 
       if (!token || !user) {
         throw new Error(
@@ -100,13 +95,29 @@ export const AuthProvider = ({ children }) => {
         );
       }
 
-      // Save JWT
+      // -------------------------------------------------
+      // SAVE JWT
+      // -------------------------------------------------
+
       localStorage.setItem(
         "nova_token",
         token
       );
 
-      // Save logged-in user
+      // -------------------------------------------------
+      // SAVE USER
+      // IMPORTANT FOR RBAC
+      // -------------------------------------------------
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+
+      // -------------------------------------------------
+      // UPDATE AUTH STATE
+      // -------------------------------------------------
+
       setUser(user);
 
       return response.data;
@@ -130,17 +141,15 @@ export const AuthProvider = ({ children }) => {
     password
   ) => {
     try {
-      const response =
-        await api.post(
-          "/auth/login",
-          {
-            identifier: identifier.trim(),
-            password,
-          }
-        );
+      const response = await api.post(
+        "/auth/login",
+        {
+          identifier: identifier.trim(),
+          password,
+        }
+      );
 
-      const { token, user } =
-        response.data;
+      const { token, user } = response.data;
 
       if (!token || !user) {
         throw new Error(
@@ -159,6 +168,16 @@ export const AuthProvider = ({ children }) => {
 
       // -------------------------------------------------
       // SAVE CURRENT USER
+      // IMPORTANT FOR RBAC
+      // -------------------------------------------------
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+
+      // -------------------------------------------------
+      // UPDATE AUTH STATE
       // -------------------------------------------------
 
       setUser(user);
@@ -176,6 +195,20 @@ export const AuthProvider = ({ children }) => {
       console.log("Username:", user.username);
       console.log("Email:", user.email);
       console.log("Role:", user.role);
+
+      console.log(
+        "Stored User:",
+        JSON.parse(
+          localStorage.getItem("user")
+        )
+      );
+
+      console.log(
+        "Stored Role:",
+        JSON.parse(
+          localStorage.getItem("user")
+        )?.role
+      );
 
       console.log(
         "==================================="
@@ -198,10 +231,17 @@ export const AuthProvider = ({ children }) => {
   // =====================================================
 
   const logout = () => {
+    // Remove authentication data
     localStorage.removeItem(
       "nova_token"
     );
 
+    // Remove stored user
+    localStorage.removeItem(
+      "user"
+    );
+
+    // Clear React state
     setUser(null);
   };
 
@@ -274,4 +314,3 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
-
