@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -29,18 +28,18 @@ connectDB();
 // =====================================================
 
 const allowedOrigins = [
+  // Local development
   "http://localhost:5173",
-  "https://novapms.netlify.app",
 
   // Production frontend
- 
+  "https://novapms.netlify.app",
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests without Origin
-      // Example: Postman / server-to-server
+      // Example: Postman / server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
@@ -49,14 +48,36 @@ app.use(
         return callback(null, true);
       }
 
+      console.log("Blocked CORS Origin:", origin);
+
       return callback(
         new Error("Not allowed by CORS")
       );
     },
 
     credentials: true,
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS",
+    ],
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+    ],
   })
 );
+
+// =====================================================
+// PREFLIGHT REQUEST
+// =====================================================
+
+app.options("*", cors());
 
 // =====================================================
 // BODY PARSER
@@ -148,6 +169,38 @@ app.use(
 );
 
 // =====================================================
+// 404 HANDLER
+// =====================================================
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found",
+    path: req.originalUrl,
+  });
+});
+
+// =====================================================
+// GLOBAL ERROR HANDLER
+// =====================================================
+
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err);
+
+  if (err.message === "Not allowed by CORS") {
+    return res.status(403).json({
+      success: false,
+      message: "CORS origin not allowed",
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
+// =====================================================
 // PORT
 // =====================================================
 
@@ -167,4 +220,3 @@ app.listen(
     );
   }
 );
-
