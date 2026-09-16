@@ -1,5 +1,4 @@
 
-
 import {
   useEffect,
   useState,
@@ -11,15 +10,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import { useAuth } from "../../context/AuthContext";
-
 // =====================================================
 // PUBLIC HEADER
 // =====================================================
 
 const PublicHeader = () => {
-  const { user } = useAuth();
-
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -49,12 +44,12 @@ const PublicHeader = () => {
   ];
 
   // =====================================================
-  // CLOSE MOBILE MENU ON ROUTE CHANGE
+  // CLOSE MOBILE MENU ON ROUTE / HASH CHANGE
   // =====================================================
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, location.hash]);
 
   // =====================================================
   // ESCAPE KEY
@@ -67,7 +62,10 @@ const PublicHeader = () => {
       }
     };
 
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
 
     return () => {
       document.removeEventListener(
@@ -100,9 +98,9 @@ const PublicHeader = () => {
   const handleSectionClick = (sectionId) => {
     setMobileOpen(false);
 
-    // -----------------------------------------------
+    // ---------------------------------------------------
     // Already on Home
-    // -----------------------------------------------
+    // ---------------------------------------------------
 
     if (location.pathname === "/") {
       const section =
@@ -113,20 +111,23 @@ const PublicHeader = () => {
           behavior: "smooth",
           block: "start",
         });
+      } else {
+        // If section does not exist yet
+        window.location.hash = sectionId;
       }
 
       return;
     }
 
-    // -----------------------------------------------
-    // Other public page
-    // -----------------------------------------------
+    // ---------------------------------------------------
+    // Navigate from another public page
+    // ---------------------------------------------------
 
     navigate(`/#${sectionId}`);
   };
 
   // =====================================================
-  // LOGO
+  // LOGO CLICK
   // =====================================================
 
   const handleLogoClick = () => {
@@ -137,9 +138,18 @@ const PublicHeader = () => {
         top: 0,
         behavior: "smooth",
       });
-    } else {
-      navigate("/");
+
+      // Remove hash when clicking logo on Home
+      if (location.hash) {
+        navigate("/", {
+          replace: true,
+        });
+      }
+
+      return;
     }
+
+    navigate("/");
   };
 
   // =====================================================
@@ -157,10 +167,15 @@ const PublicHeader = () => {
   const getNavLinkClass = (section) => {
     const isHome =
       location.pathname === "/" &&
-      (
-        section === "home" &&
-        !window.location.hash
-      );
+      section === "home" &&
+      !location.hash;
+
+    const isSectionActive =
+      location.pathname === "/" &&
+      location.hash === `#${section}`;
+
+    const isActive =
+      isHome || isSectionActive;
 
     return `
       rounded-lg
@@ -169,7 +184,7 @@ const PublicHeader = () => {
       transition-all duration-200
 
       ${
-        isHome
+        isActive
           ? "bg-slate-900 text-white shadow-sm"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
       }
@@ -181,9 +196,17 @@ const PublicHeader = () => {
   // =====================================================
 
   const getMobileNavClass = (section) => {
-    const isActive =
+    const isHome =
       location.pathname === "/" &&
-      window.location.hash === `#${section}`;
+      section === "home" &&
+      !location.hash;
+
+    const isSectionActive =
+      location.pathname === "/" &&
+      location.hash === `#${section}`;
+
+    const isActive =
+      isHome || isSectionActive;
 
     return `
       block w-full
@@ -201,14 +224,6 @@ const PublicHeader = () => {
   };
 
   // =====================================================
-  // AUTHENTICATED USER
-  // =====================================================
-
-  if (user) {
-    return null;
-  }
-
-  // =====================================================
   // RENDER
   // =====================================================
 
@@ -221,7 +236,6 @@ const PublicHeader = () => {
         backdrop-blur
       "
     >
-
       {/* =================================================
           MAIN HEADER
       ================================================= */}
@@ -238,7 +252,6 @@ const PublicHeader = () => {
           lg:px-8
         "
       >
-
         {/* =================================================
             LOGO
         ================================================= */}
@@ -256,7 +269,6 @@ const PublicHeader = () => {
             focus-visible:ring-offset-2
           "
         >
-
           <div
             className="
               flex h-9 w-9
@@ -272,7 +284,6 @@ const PublicHeader = () => {
           </div>
 
           <div className="text-left">
-
             <p
               className="
                 text-lg
@@ -296,9 +307,7 @@ const PublicHeader = () => {
             >
               TEAM PRODUCTIVITY
             </p>
-
           </div>
-
         </button>
 
         {/* =================================================
@@ -314,7 +323,6 @@ const PublicHeader = () => {
             md:flex
           "
         >
-
           {navigation.map((item) => (
             <button
               key={item.section}
@@ -329,7 +337,6 @@ const PublicHeader = () => {
               {item.name}
             </button>
           ))}
-
         </nav>
 
         {/* =================================================
@@ -344,7 +351,6 @@ const PublicHeader = () => {
             md:flex
           "
         >
-
           {/* LOGIN */}
 
           <Link
@@ -388,7 +394,6 @@ const PublicHeader = () => {
           >
             Get Started
           </Link>
-
         </div>
 
         {/* =================================================
@@ -418,9 +423,7 @@ const PublicHeader = () => {
             md:hidden
           "
         >
-
           {mobileOpen ? (
-
             <svg
               className="h-6 w-6"
               viewBox="0 0 24 24"
@@ -435,9 +438,7 @@ const PublicHeader = () => {
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-
           ) : (
-
             <svg
               className="h-6 w-6"
               viewBox="0 0 24 24"
@@ -452,11 +453,8 @@ const PublicHeader = () => {
                 d="M4 6h16M4 12h16M4 18h16"
               />
             </svg>
-
           )}
-
         </button>
-
       </div>
 
       {/* =================================================
@@ -464,7 +462,6 @@ const PublicHeader = () => {
       ================================================= */}
 
       {mobileOpen && (
-
         <div
           id="public-mobile-navigation"
           className="
@@ -474,7 +471,6 @@ const PublicHeader = () => {
             md:hidden
           "
         >
-
           <div
             className="
               mx-auto
@@ -484,14 +480,11 @@ const PublicHeader = () => {
               sm:px-6
             "
           >
-
             <nav
               aria-label="Mobile navigation"
               className="space-y-1"
             >
-
               {navigation.map((item) => (
-
                 <button
                   key={item.section}
                   type="button"
@@ -509,9 +502,7 @@ const PublicHeader = () => {
                 >
                   {item.name}
                 </button>
-
               ))}
-
             </nav>
 
             {/* DIVIDER */}
@@ -527,7 +518,6 @@ const PublicHeader = () => {
             {/* AUTH */}
 
             <div className="space-y-2">
-
               <Link
                 to="/login"
                 onClick={() =>
@@ -569,18 +559,12 @@ const PublicHeader = () => {
               >
                 Get Started
               </Link>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </header>
   );
 };
 
 export default PublicHeader;
-
