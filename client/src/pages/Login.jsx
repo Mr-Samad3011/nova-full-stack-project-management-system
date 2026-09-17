@@ -58,7 +58,7 @@ const Login = () => {
       // REDIRECT
       // -------------------------------------------------
 
-      navigate("/dashboard");
+     navigate("/dashboard", { replace: true, });
 
     } catch (error) {
       console.error(
